@@ -1,51 +1,73 @@
 package com.trainosys.shopapi.users;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 public class UserController {
-    private final UserService userService;
+    private final UserServiceImpl userService;
 
-    public UserController(UserService userService) {
+    public UserController(UserServiceImpl userService) {
         this.userService = userService;
     }
 
-    @GetMapping
-    public List<User> getUsers(){
-        return userService.getAllUsers();
+    @GetMapping("/admin/users")
+    public ResponseEntity<List<User>> getUsers() {
+        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public User getUser(@PathVariable int id){
-        return userService.getUserById(id);
+    @GetMapping("/admin/users/{id}")
+    public ResponseEntity<Object> getUser(@PathVariable int id) {
+        try {
+            User user = userService.getUserById(id);
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @GetMapping("/email/{email}")
-    public String getUserEmail(@PathVariable String email){
-        String foundEmail = userService.getUserEmail(email);
-        return "Email: " + foundEmail;
+    @GetMapping("/admin/users/email/{email}")
+    public ResponseEntity<String> getUserEmail(@PathVariable String email) {
+        try {
+            String foundEmail = userService.getUserEmail(email);
+            return new ResponseEntity<>("Email: " + foundEmail, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @PostMapping
-    public String createUser(@RequestBody User user){
-        userService.createUser(user);
-        return "Successfully created user: " + user.getName() + " with ID: " + user.getId();
+    @PostMapping("/public/users")
+    public ResponseEntity<String> createUser(@RequestBody User user) {
+        try {
+            String status = userService.createUser(user);
+            return new ResponseEntity<>(status, HttpStatus.CREATED);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @PutMapping("/{id}")
-    public User updateUser(@PathVariable int id ,@RequestBody UserUpdateDTO user){
-        userService.updateUser(id, user);
-        return userService.getUserById(id);
+    @PutMapping("/admin/users/{id}")
+    public ResponseEntity<Object> updateUser(@PathVariable int id, @RequestBody UserUpdateDTO userDetails) {
+        try {
+            User updatedUser = userService.updateUser(id, userDetails);
+            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable int id){
-        userService.deleteUser(id);
-        return "User with ID " + id + " has been successfully deleted.";
+    @DeleteMapping("/admin/users/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable int id) {
+        try {
+            String status = userService.deleteUser(id);
+            return new ResponseEntity<>(status, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
-
-
 }

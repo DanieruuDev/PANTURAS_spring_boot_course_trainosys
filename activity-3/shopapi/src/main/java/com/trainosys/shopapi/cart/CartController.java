@@ -1,66 +1,86 @@
 package com.trainosys.shopapi.cart;
+
 import com.trainosys.shopapi.product.Product;
-import com.trainosys.shopapi.product.ProductService;
+import com.trainosys.shopapi.product.ProductServiceImpl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/carts")
+@RequestMapping("/api")
 public class CartController {
 
-    private final CartItemService cartService;
-    private final ProductService productService;
+    private final CartServiceImpl cartService;
+    private final ProductServiceImpl productService;
 
-    public CartController(CartItemService cartService, ProductService productService) {
+    public CartController(CartServiceImpl cartService, ProductServiceImpl productService) {
         this.cartService = cartService;
         this.productService = productService;
     }
 
-    @GetMapping("/{userId}")
-    public List<CartItem> viewCart(@PathVariable int userId) {
-        return cartService.getCart(userId);
+    @GetMapping("/public/carts/{userId}")
+    public ResponseEntity<List<CartItem>> viewCart(@PathVariable int userId) {
+        return new ResponseEntity<>(cartService.getCart(userId), HttpStatus.OK);
     }
 
-    @PostMapping("/{userId}/items")
-    public List<CartItem> addItemToCart(@PathVariable int userId, @RequestBody CartItem item) {
-        cartService.addItem(userId, item);
-        return cartService.getCart(userId);
+    @PostMapping("/public/carts/{userId}/items")
+    public ResponseEntity<Object> addItemToCart(@PathVariable int userId, @RequestBody CartItem item) {
+        try {
+            cartService.addItem(userId, item);
+            return new ResponseEntity<>(cartService.getCart(userId), HttpStatus.CREATED);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @PutMapping("/{userId}/items/{productId}")
-    public List<CartItem> updateItemQuantity(@PathVariable int userId,
-                                             @PathVariable int productId,
-                                             @RequestBody CartItem item) {
-        cartService.updateItemQuantity(userId, productId, item.getQuantity());
-        return cartService.getCart(userId);
+    @PutMapping("/public/carts/{userId}/items/{productId}")
+    public ResponseEntity<Object> updateItemQuantity(@PathVariable int userId,
+                                                     @PathVariable int productId,
+                                                     @RequestBody CartItem item) {
+        try {
+            cartService.updateItemQuantity(userId, productId, item.getQuantity());
+            return new ResponseEntity<>(cartService.getCart(userId), HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @DeleteMapping("/{userId}/items/{productId}")
-    public String removeItemFromCart(@PathVariable int userId, @PathVariable int productId) {
-        cartService.removeItem(userId, productId);
-        return "Product ID " + productId + " removed from User " + userId + "'s cart.";
+    @DeleteMapping("/public/carts/{userId}/items/{productId}")
+    public ResponseEntity<String> removeItemFromCart(@PathVariable int userId, @PathVariable int productId) {
+        try {
+            String status = cartService.removeItem(userId, productId);
+            return new ResponseEntity<>(status, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @DeleteMapping("/{userId}")
-    public String clearCart(@PathVariable int userId) {
-        cartService.clearCart(userId);
-        return "Cart for User " + userId + " has been successfully cleared.";
+    @DeleteMapping("/public/carts/{userId}")
+    public ResponseEntity<String> clearCart(@PathVariable int userId) {
+        try {
+            String status = cartService.clearCart(userId);
+            return new ResponseEntity<>(status, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @GetMapping("/{userId}/total")
-    public double getCartTotal(@PathVariable int userId) {
-        List<CartItem> userItems = cartService.getCart(userId);
+    @GetMapping("/admin/carts")
+    public ResponseEntity<Map<Integer, List<CartItem>>> getAllCarts() {
+        return new ResponseEntity<>(cartService.getAllCarts(), HttpStatus.OK);
+    }
 
-        return userItems.stream()
-                .mapToDouble(item -> {
-                    // Look up the product details from the product module memory bank
-                    Product product = productService.getProductById(item.getProductId());
-                    if (product != null) {
-                        return product.getPrice() * item.getQuantity();
-                    }
-                    return 0.0;
-                })
-                .sum();
+    @GetMapping("/public/carts/{userId}/total")
+    public ResponseEntity<Object> getCartTotal(@PathVariable int userId) {
+        try {
+            double total = cartService.getCartTotal(userId);
+            return new ResponseEntity<>(total, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 }

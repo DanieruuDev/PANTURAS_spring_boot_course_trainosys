@@ -1,54 +1,78 @@
 package com.trainosys.shopapi.product;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api")
 public class ProductController {
-    private final ProductService productService;
+    private final ProductServiceImpl productService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductServiceImpl productService) {
         this.productService = productService;
     }
 
-    @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    @GetMapping("/public/products")
+    public ResponseEntity<List<Product>> getAllProducts() {
+        return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public Product getProductById(@PathVariable int id) {
-        return productService.getProductById(id);
+    @GetMapping("/public/products/{id}")
+    public ResponseEntity<Object> getProductById(@PathVariable int id) {
+        try {
+            Product product = productService.getProductById(id);
+            return new ResponseEntity<>(product, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @PostMapping
-    public Product addProduct(@RequestBody Product product) {
-        productService.addProduct(product);
-        return product;
+    @PostMapping("/admin/products")
+    public ResponseEntity<Object> addProduct(@RequestBody Product product) {
+        try {
+            productService.addProduct(product);
+            return new ResponseEntity<>(product, HttpStatus.CREATED);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable int id, @RequestBody Product productDetails) {
-        productService.updateProduct(id, productDetails);
-        return productService.getProductById(id);
+    @PutMapping("/admin/products/{id}")
+    public ResponseEntity<Object> updateProduct(@PathVariable int id, @RequestBody Product productDetails) {
+        try {
+            Product updatedProduct = productService.updateProduct(id, productDetails);
+            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public String deleteProduct(@PathVariable int id) {
-        productService.deleteProduct(id);
-        return "Product with ID " + id + " has been successfully deleted.";
+    @DeleteMapping("/admin/products/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable int id) {
+        try {
+            String status = productService.deleteProduct(id);
+            return new ResponseEntity<>(status, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 
-    @GetMapping("/category/{category}")
-    public List<Product> getProductsByCategory(@PathVariable String category) {
-        return productService.getProductsByCategory(category);
+    @GetMapping("/public/products/category/{category}")
+    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable String category) {
+        return new ResponseEntity<>(productService.getProductsByCategory(category), HttpStatus.OK);
     }
 
-    @PutMapping("/{id}/stock/{quantity}")
-    public Product setProductStock(@PathVariable int id, @PathVariable int quantity) {
-        productService.updateStock(id, quantity);
-        return productService.getProductById(id);
+    @PutMapping("/admin/products/{id}/stock/{quantity}")
+    public ResponseEntity<Object> setProductStock(@PathVariable int id, @PathVariable int quantity) {
+        try {
+            Product updatedProduct = productService.updateStock(id, quantity);
+            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
+        }
     }
 }
