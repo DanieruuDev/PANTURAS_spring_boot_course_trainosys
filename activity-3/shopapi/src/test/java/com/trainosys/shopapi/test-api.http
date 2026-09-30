@@ -1,0 +1,175 @@
+### =========================================================================
+### 1. USERS MODULE TESTS
+### =========================================================================
+
+# @name createFirstUser
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "Ana C.",
+  "email": "ana@mail.com"
+}
+
+###
+
+# @name createSecondUser
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@mail.com"
+}
+
+###
+
+# @name listAllUsers
+GET http://localhost:8080/api/users
+
+###
+
+# @name getOneUser
+GET http://localhost:8080/api/users/1
+
+###
+
+# @name updateUserInfo
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Ana C.",
+  "email": "ana.c@mail.com"
+}
+
+###
+
+# @name findUserByEmailBonus
+GET http://localhost:8080/api/users/email/ana.c@mail.com
+
+
+### =========================================================================
+### 2. PRODUCTS MODULE TESTS
+### =========================================================================
+
+# @name addFirstProduct
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Mouse",
+  "price": 499.0,
+  "category": "Electronics"
+}
+
+###
+
+# @name addSecondProduct
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Keyboard",
+  "price": 899.0,
+  "category": "Electronics"
+}
+
+###
+
+# @name listAllProducts
+GET http://localhost:8080/api/products
+
+###
+
+# @name getOneProduct
+GET http://localhost:8080/api/products/1
+
+###
+
+# @name updateProductInfo
+PUT http://localhost:8080/api/products/1
+Content-Type: application/json
+
+{
+  "name": "Wireless Mouse"
+}
+
+###
+
+# @name setProductStockBonus
+PUT http://localhost:8080/api/products/1/stock/50
+
+###
+
+# @name findProductsByCategoryBonus
+GET http://localhost:8080/api/products/category/Electronics
+
+
+### =========================================================================
+### 3. CART MODULE TESTS (Assuming User ID = 1 and Product ID = 1)
+### =========================================================================
+
+# @name addProductToCart
+POST http://localhost:8080/api/carts/1/items
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 2
+}
+
+###
+
+# @name addSecondProductToCart
+POST http://localhost:8080/api/carts/1/items
+Content-Type: application/json
+
+{
+  "productId": 2,
+  "quantity": 1
+}
+
+###
+
+# @name viewUserCart
+GET http://localhost:8080/api/carts/1
+
+###
+
+# @name changeItemQuantity
+PUT http://localhost:8080/api/carts/1/items/1
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 5
+}
+
+###
+
+# @name getCartTotalBonus
+GET http://localhost:8080/api/carts/1/total
+
+###
+
+# @name removeOneItemFromCart
+DELETE http://localhost:8080/api/carts/1/items/1
+
+###
+
+# @name clearWholeCart
+DELETE http://localhost:8080/api/carts/1
+
+
+### =========================================================================
+### 4. CLEANUP DELETIONS
+### =========================================================================
+
+# @name deleteProduct
+DELETE http://localhost:8080/api/products/1
+
+###
+
+# @name deleteUser
+DELETE http://localhost:8080/api/users/1
