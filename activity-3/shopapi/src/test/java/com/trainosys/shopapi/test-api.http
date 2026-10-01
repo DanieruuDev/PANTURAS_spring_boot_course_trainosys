@@ -1,0 +1,87 @@
+### Variables
+@host = http://localhost:8080/api
+
+
+### =========================================================================
+### 1. SUCCESS TESTS (POST a user, a product, a cart item -> 201 Created)
+### =========================================================================
+
+### Create a User
+POST {{host}}/public/users
+Content-Type: application/json
+
+{
+  "userName": "john_doe",
+  "email": "john@example.com"
+}
+
+### Create a Product
+POST {{host}}/admin/products
+Content-Type: application/json
+
+{
+  "productName": "Gaming Mouse",
+  "price": 59.99,
+  "category": "Electronics",
+  "stock": 100
+}
+
+### Add an Item to Cart
+POST {{host}}/public/carts/1/items
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 2
+}
+
+
+### =========================================================================
+### 2. ID GENERATION TEST (Send "userId": 10 on create -> Ignored by DB)
+### =========================================================================
+
+### Create User with explicit ID (Targets /public/users as defined in UserController)
+POST {{host}}/public/users
+Content-Type: application/json
+
+{
+  "userId": 10,
+  "userName": "jane_doe",
+  "email": "jane@example.com"
+}
+
+
+### =========================================================================
+### 3. MISSING ID ERROR TESTS (GET / PUT / DELETE a missing ID -> 404 Not Found)
+### =========================================================================
+
+### GET a missing product ID
+GET {{host}}/public/products/9999
+
+### PUT to update a missing product ID
+PUT {{host}}/admin/products/9999
+Content-Type: application/json
+
+{
+  "productName": "Non-existent Product",
+  "price": 10.00,
+  "category": "None",
+  "stock": 0
+}
+
+### DELETE a missing product ID
+DELETE {{host}}/admin/products/9999
+
+
+### =========================================================================
+### 4. MISSING PRODUCT IN CART TEST (Add cart item for missing product -> 404)
+### =========================================================================
+
+### Add a cart item with a non-existent product ID
+POST {{host}}/public/carts/1/items
+Content-Type: application/json
+
+{
+  "productId": 9999,
+  "quantity": 1
+}
